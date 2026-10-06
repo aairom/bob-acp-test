@@ -1,0 +1,259 @@
+{
+  "name": "acp-vscode",
+  "displayName": "ACP for VSCode",
+  "description": "Production-ready Agent Client Protocol (ACP) integration for Visual Studio Code — connect to any ACP-compatible AI coding agent (including IBM watsonx Code Assistant / IBM Bob) via JSON-RPC 2.0 over stdio.",
+  "version": "1.0.0",
+  "publisher": "acp-vscode",
+  "license": "MIT",
+  "_repositoryNote": "TODO: Replace the repository URL below with your actual GitHub/GitLab repo before publishing to the VS Code Marketplace. vsce requires a resolvable repository URL to validate README links.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acp-vscode/acp-vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=18.0.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "acp",
+    "agent",
+    "ai",
+    "claude",
+    "codex",
+    "gemini",
+    "copilot",
+    "protocol",
+    "ibm",
+    "watson",
+    "ibm-bob",
+    "watsonx"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "ACP for VSCode",
+      "properties": {
+        "acp.agents": {
+          "type": "object",
+          "default": {},
+          "description": "Agent configurations keyed by agent name. Each value has `command`, optional `args` (string[]), and optional `env` (object).",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command"],
+            "properties": {
+              "command": {
+                "type": "string",
+                "description": "Executable or npx command to spawn the ACP agent."
+              },
+              "args": {
+                "type": "array",
+                "items": { "type": "string" },
+                "default": [],
+                "description": "Additional CLI arguments."
+              },
+              "env": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "default": {},
+                "description": "Environment variables injected into the agent process. Use ${env:VAR_NAME} to forward host env vars."
+              }
+            }
+          }
+        },
+        "acp.autoApprovePermissions": {
+          "type": "string",
+          "default": "ask",
+          "enum": ["ask", "allowAll"],
+          "enumDescriptions": [
+            "Prompt the user for each permission request.",
+            "Automatically approve all permission requests."
+          ],
+          "description": "How ACP agent permission requests are handled."
+        },
+        "acp.defaultWorkingDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Default working directory for agent processes. Empty string uses the current workspace folder."
+        },
+        "acp.logTraffic": {
+          "type": "boolean",
+          "default": true,
+          "description": "Log raw ACP JSON-RPC messages to the 'ACP Traffic' output channel."
+        },
+        "acp.connectTimeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "maximum": 120000,
+          "description": "Milliseconds to wait for an agent to respond to the initialize handshake."
+        },
+        "acp.includeBuiltInAgents": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include the built-in preconfigured ACP agents alongside custom agents."
+        },
+        "acp.ibmBobApiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "IBM watsonx Code Assistant (IBM Bob) API key. **Preferred:** leave this empty and set the `IBM_BOB_API_KEY` environment variable in your shell instead — VS Code will inherit it and the key will never be written to settings storage. Only use this field in environments where shell env vars are not available.",
+          "secret": true
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "acp-sidebar",
+          "title": "ACP Agents",
+          "icon": "media/acp-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "acp-sidebar": [
+        {
+          "id": "acp.agentsView",
+          "name": "Agents",
+          "type": "tree"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "acp.connectAgent",
+        "title": "ACP: Connect to Agent",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "acp.disconnectAgent",
+        "title": "ACP: Disconnect Agent",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "acp.restartAgent",
+        "title": "ACP: Restart Agent",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "acp.newConversation",
+        "title": "ACP: New Conversation",
+        "icon": "$(add)"
+      },
+      {
+        "command": "acp.openChatPanel",
+        "title": "ACP: Open Chat Panel",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "acp.cancelTurn",
+        "title": "ACP: Cancel Current Turn",
+        "icon": "$(stop-circle)"
+      },
+      {
+        "command": "acp.addAgentConfig",
+        "title": "ACP: Add Agent Configuration",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "acp.removeAgent",
+        "title": "ACP: Remove Agent",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "acp.showLog",
+        "title": "ACP: Show Log"
+      },
+      {
+        "command": "acp.showTrafficLog",
+        "title": "ACP: Show Protocol Traffic"
+      },
+      {
+        "command": "acp.refreshSessions",
+        "title": "ACP: Refresh Sessions",
+        "icon": "$(refresh)"
+      }
+    ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "acp.connectAgent",
+          "when": "view == acp.agentsView && viewItem == agentDisconnected",
+          "group": "inline"
+        },
+        {
+          "command": "acp.disconnectAgent",
+          "when": "view == acp.agentsView && viewItem == agentConnected",
+          "group": "inline"
+        },
+        {
+          "command": "acp.restartAgent",
+          "when": "view == acp.agentsView && viewItem == agentConnected",
+          "group": "inline"
+        },
+        {
+          "command": "acp.refreshSessions",
+          "when": "view == acp.agentsView && viewItem == agentConnected"
+        },
+        {
+          "command": "acp.removeAgent",
+          "when": "view == acp.agentsView && viewItem =~ /agent/"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "acp.addAgentConfig",
+          "when": "view == acp.agentsView",
+          "group": "navigation"
+        },
+        {
+          "command": "acp.openChatPanel",
+          "when": "view == acp.agentsView",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "acp.openChatPanel",
+        "key": "ctrl+shift+a",
+        "mac": "cmd+shift+a"
+      },
+      {
+        "command": "acp.cancelTurn",
+        "key": "escape",
+        "when": "acp.turnInProgress"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node scripts/chmod-scripts.js",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTests.js",
+    "package": "npx @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "18.x",
+    "@types/sinon": "^10.0.20",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.56.0",
+    "mocha": "^10.3.0",
+    "sinon": "^17.0.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {}
+}
