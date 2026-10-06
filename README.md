@@ -1,7 +1,7 @@
 # ACP for VSCode
 
 A production-ready **Agent Client Protocol (ACP)** integration for Visual Studio Code.  
-Connect to any ACP-compatible AI coding agent — **IBM watsonx Code Assistant (IBM Bob)**, Claude Code, GitHub Copilot, Gemini CLI, Codex, OpenCode, Qwen Code, and more — directly from your editor using the open JSON-RPC 2.0 over stdio protocol.
+Connect to any ACP-compatible AI coding agent — **IBM Bob**, Claude Code, GitHub Copilot, Gemini CLI, Codex, OpenCode, Qwen Code, and more — directly from your editor using the open JSON-RPC 2.0 over stdio protocol.
 
 > **Repository:** Update the `repository.url` field in `package.json` to your actual GitHub/GitLab URL before publishing to the VS Code Marketplace. The placeholder URL (`https://github.com/acp-vscode/acp-vscode`) is used for local builds only.
 
@@ -92,7 +92,7 @@ sequenceDiagram
 
 | Feature | Details |
 |---|---|
-| **IBM Bob (watsonx) support** | Built-in preset for IBM watsonx Code Assistant via ACP |
+| **IBM Bob support** | Built-in preset for IBM Bob via ACP |
 | **Multi-agent support** | 8 built-in presets + unlimited custom agents |
 | **ACP protocol** | Full JSON-RPC 2.0 over stdio (newline-delimited) |
 | **Streaming chat** | Real-time text, thinking blocks, tool calls |
@@ -109,13 +109,13 @@ sequenceDiagram
 
 - **VS Code** `1.85.0` or later
 - **Node.js** `18.0.0` or later (for spawning agent processes via `npx`)
-- At least one ACP-compatible agent installed and authenticated (see [IBM Bob Setup](#ibm-watsonx-code-assistant--ibm-bob-setup) or the Quickstart guide in `Docs/Quickstart.md`)
+- At least one ACP-compatible agent installed and authenticated (see [IBM Bob Setup](#ibm-bob-setup) or the Quickstart guide in `Docs/Quickstart.md`)
 
 ---
 
-## IBM watsonx Code Assistant / IBM Bob Setup
+## IBM Bob Setup
 
-IBM Bob (watsonx Code Assistant) supports ACP natively. To connect:
+IBM Bob supports ACP natively. To connect:
 
 ### 1. Obtain an API Key
 
@@ -215,7 +215,7 @@ All settings live under the `acp.*` namespace in VS Code Settings (`Ctrl+,`):
 | `acp.logTraffic` | `true` | Log raw JSON-RPC frames to the ACP Traffic output channel |
 | `acp.connectTimeoutMs` | `30000` | Milliseconds to wait for the ACP initialize handshake |
 | `acp.defaultWorkingDirectory` | `""` | CWD for spawned agents; empty = current workspace folder |
-| `acp.ibmBobApiKey` | `""` | IBM watsonx Code Assistant API key (stored as VS Code secret; prefer `IBM_BOB_API_KEY` env var) |
+| `acp.ibmBobApiKey` | `""` | IBM Bob API key (stored as VS Code secret; prefer `IBM_BOB_API_KEY` env var) |
 
 ### Agent env-var placeholders
 
